@@ -1,3 +1,4 @@
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -34,7 +35,31 @@ public class Board {
                     emptyRow = row;
                     emptyCol = col;
                 } else {
-                    tiles[row][col] = new Tile(id, row, col, "tile_" + id, false);
+                    // Image is optional for now; UI/service layer can replace it later.
+                    tiles[row][col] = new Tile(id, row, col, null, false);
+                    id++;
+                }
+            }
+        }
+    }
+
+    // Initialize with pre-sliced tile images.
+    // tilePieces[0] corresponds to tile id=1, ... tilePieces[size*size-2] corresponds to id=size*size-1.
+    public void initializeSolvedBoard(BufferedImage[] tilePieces) {
+        int id = 1;
+
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                if (row == size - 1 && col == size - 1) {
+                    tiles[row][col] = new Tile(0, row, col, null, true);
+                    emptyRow = row;
+                    emptyCol = col;
+                } else {
+                    BufferedImage piece = null;
+                    if (tilePieces != null && id - 1 >= 0 && id - 1 < tilePieces.length) {
+                        piece = tilePieces[id - 1];
+                    }
+                    tiles[row][col] = new Tile(id, row, col, piece, false);
                     id++;
                 }
             }
@@ -110,6 +135,48 @@ public class Board {
         return result;
     }
 
+    public int[][] exportTileIds() {
+        int[][] ids = new int[size][size];
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                ids[row][col] = tiles[row][col].getId();
+            }
+        }
+        return ids;
+    }
+
+    // Apply a tile id layout (row-major), reconstructing tiles/correct positions.
+    // tileIds[r][c] == 0 means empty tile.
+    public void setTilesFromIds(int[][] tileIds, BufferedImage[] tilePieces) {
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                int id = tileIds[row][col];
+                if (id == 0) {
+                    tiles[row][col] = new Tile(0, size - 1, size - 1, null, true);
+                    tiles[row][col].setPosition(row, col);
+                    emptyRow = row;
+                    emptyCol = col;
+                } else {
+                    int correctRow = (id - 1) / size;
+                    int correctCol = (id - 1) % size;
+
+                    BufferedImage piece = null;
+                    if (tilePieces != null && id - 1 >= 0 && id - 1 < tilePieces.length) {
+                        piece = tilePieces[id - 1];
+                    }
+
+                    tiles[row][col] = new Tile(id, correctRow, correctCol, piece, false);
+                    tiles[row][col].setPosition(row, col);
+                }
+            }
+        }
+    }
+
+    // Capture current tiles as the reset target (opening state).
+    public void captureInitialTiles() {
+        initialTiles = copyTiles();
+    }
+
     public void shuffle() {
         Random random = new Random();
 
@@ -151,7 +218,10 @@ public class Board {
     }
 
     public void reset() {       //reset the puzzle to original state
+        // If opening state hasn't been created yet, treat "reset" as "start game".
         if (initialTiles == null) {
+            initializeSolvedBoard();
+            shuffle();
             return;
         }
 
