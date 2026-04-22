@@ -42,8 +42,9 @@ public class ImageProcessor {
 
         BufferedImage square = cropToSquareCenter(input);
 
-        // Use a fixed target size so saved/opened games produce identical tile pieces.
-        final int targetSide = 500;
+        // Fixed side length: lcm(2,3,4,5)=60 → use multiple of 60 so every grid size gets integer tile pixels.
+        // 2400 → 5×5 tiles are 480px each; sharper when scaled to large windows (uses more RAM).
+        final int targetSide = 2400;
         BufferedImage scaled = scaleToSquare(square, targetSide);
 
         int tileCount = gridSize * gridSize - 1;
@@ -83,6 +84,7 @@ public class ImageProcessor {
         // Ensure we have an RGB image for more consistent drawing/saving.
         BufferedImage rgb = new BufferedImage(side, side, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2 = rgb.createGraphics();
+        applyQualityHints(g2);
         g2.drawImage(square, 0, 0, null);
         g2.dispose();
         return rgb;
@@ -91,8 +93,16 @@ public class ImageProcessor {
     private static BufferedImage scaleToSquare(BufferedImage square, int targetSide) {
         BufferedImage scaled = new BufferedImage(targetSide, targetSide, BufferedImage.TYPE_INT_RGB);
         Graphics2D g2 = scaled.createGraphics();
+        applyQualityHints(g2);
         g2.drawImage(square, 0, 0, targetSide, targetSide, null);
         g2.dispose();
         return scaled;
+    }
+
+    private static void applyQualityHints(Graphics2D g2) {
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
     }
 }
