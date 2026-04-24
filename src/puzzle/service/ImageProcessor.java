@@ -1,19 +1,22 @@
-
 import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-
 import javax.imageio.ImageIO;
 
 public class ImageProcessor {
 
     public static class ProcessedImage {
+
         public final BufferedImage squareImage;
         // tilePieces[0] corresponds to tile id=1, ... tilePieces[size*size-2] corresponds to id=size*size-1.
         public final BufferedImage[] tilePieces;
 
-        public ProcessedImage(BufferedImage squareImage, BufferedImage[] tilePieces) {
+        public ProcessedImage(
+            BufferedImage squareImage,
+            BufferedImage[] tilePieces
+        ) {
             this.squareImage = squareImage;
             this.tilePieces = tilePieces;
         }
@@ -26,18 +29,25 @@ public class ImageProcessor {
             throw new IllegalArgumentException("imageFile is null");
         }
         if (gridSize < 2 || gridSize > 5) {
-            throw new IllegalArgumentException("gridSize must be between 2 and 5");
+            throw new IllegalArgumentException(
+                "gridSize must be between 2 and 5"
+            );
         }
 
         BufferedImage input;
         try {
             input = ImageIO.read(imageFile);
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read image: " + imageFile.getAbsolutePath(), e);
+            throw new RuntimeException(
+                "Failed to read image: " + imageFile.getAbsolutePath(),
+                e
+            );
         }
 
         if (input == null) {
-            throw new RuntimeException("Unsupported/invalid image: " + imageFile.getAbsolutePath());
+            throw new RuntimeException(
+                "Unsupported/invalid image: " + imageFile.getAbsolutePath()
+            );
         }
 
         BufferedImage square = cropToSquareCenter(input);
@@ -56,7 +66,8 @@ public class ImageProcessor {
         int id = 1;
         for (int row = 0; row < gridSize; row++) {
             for (int col = 0; col < gridSize; col++) {
-                boolean isEmptyCell = (row == gridSize - 1 && col == gridSize - 1);
+                boolean isEmptyCell = (row == gridSize - 1 &&
+                    col == gridSize - 1);
                 if (isEmptyCell) {
                     continue;
                 }
@@ -82,7 +93,11 @@ public class ImageProcessor {
         BufferedImage square = img.getSubimage(x0, y0, side, side);
 
         // Ensure we have an RGB image for more consistent drawing/saving.
-        BufferedImage rgb = new BufferedImage(side, side, BufferedImage.TYPE_INT_RGB);
+        BufferedImage rgb = new BufferedImage(
+            side,
+            side,
+            BufferedImage.TYPE_INT_RGB
+        );
         Graphics2D g2 = rgb.createGraphics();
         applyQualityHints(g2);
         g2.drawImage(square, 0, 0, null);
@@ -90,8 +105,15 @@ public class ImageProcessor {
         return rgb;
     }
 
-    private static BufferedImage scaleToSquare(BufferedImage square, int targetSide) {
-        BufferedImage scaled = new BufferedImage(targetSide, targetSide, BufferedImage.TYPE_INT_RGB);
+    private static BufferedImage scaleToSquare(
+        BufferedImage square,
+        int targetSide
+    ) {
+        BufferedImage scaled = new BufferedImage(
+            targetSide,
+            targetSide,
+            BufferedImage.TYPE_INT_RGB
+        );
         Graphics2D g2 = scaled.createGraphics();
         applyQualityHints(g2);
         g2.drawImage(square, 0, 0, targetSide, targetSide, null);
@@ -100,9 +122,21 @@ public class ImageProcessor {
     }
 
     private static void applyQualityHints(Graphics2D g2) {
-        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-        g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+        g2.setRenderingHint(
+            RenderingHints.KEY_INTERPOLATION,
+            RenderingHints.VALUE_INTERPOLATION_BICUBIC
+        );
+        g2.setRenderingHint(
+            RenderingHints.KEY_RENDERING,
+            RenderingHints.VALUE_RENDER_QUALITY
+        );
+        g2.setRenderingHint(
+            RenderingHints.KEY_ANTIALIASING,
+            RenderingHints.VALUE_ANTIALIAS_ON
+        );
+        g2.setRenderingHint(
+            RenderingHints.KEY_ALPHA_INTERPOLATION,
+            RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY
+        );
     }
 }

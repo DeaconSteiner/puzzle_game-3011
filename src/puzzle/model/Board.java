@@ -6,22 +6,30 @@ import java.util.Random;
 public class Board {
 
     private int size;
-    private Tile[] [] tiles;
+    private Tile[][] tiles;
     private int emptyRow;
     private int emptyCol;
-    private Tile[] [] initialTiles;
+    private Tile[][] initialTiles;
 
     public Board(int size) {
         this.size = size;
-        this.tiles = new Tile[size] [size];
+        this.tiles = new Tile[size][size];
     }
 
     public Tile getTile(int row, int col) {
-        return tiles[row] [col];
+        return tiles[row][col];
     }
 
     public int getSize() {
         return size;
+    }
+
+    public int getEmptyRow() {
+        return emptyRow;
+    }
+
+    public int getEmptyCol() {
+        return emptyCol;
     }
 
     public void initializeSolvedBoard() {
@@ -29,7 +37,6 @@ public class Board {
 
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
-
                 if (row == size - 1 && col == size - 1) {
                     tiles[row][col] = new Tile(0, row, col, null, true);
                     emptyRow = row;
@@ -56,7 +63,11 @@ public class Board {
                     emptyCol = col;
                 } else {
                     BufferedImage piece = null;
-                    if (tilePieces != null && id - 1 >= 0 && id - 1 < tilePieces.length) {
+                    if (
+                        tilePieces != null &&
+                        id - 1 >= 0 &&
+                        id - 1 < tilePieces.length
+                    ) {
                         piece = tilePieces[id - 1];
                     }
                     tiles[row][col] = new Tile(id, row, col, piece, false);
@@ -71,7 +82,8 @@ public class Board {
         //this formula will determine whether the tile can move to the current chosed place
     }
 
-    public void swapTiles(int r1, int c1, int r2, int c2) { //this will swap the tiles
+    public void swapTiles(int r1, int c1, int r2, int c2) {
+        //this will swap the tiles
 
         Tile temp = tiles[r1][c1];
 
@@ -83,24 +95,22 @@ public class Board {
     }
 
     public boolean moveTile(int row, int col) {
-
-        if (!canMove(row, col)) {   //if this tile is next to the empty space, do nothing
+        if (!canMove(row, col)) {
+            //if this tile is next to the empty space, do nothing
             return false;
         }
 
         swapTiles(row, col, emptyRow, emptyCol);
 
-        emptyRow = row;     //the empty space have alreadly move to the tile position
-        emptyCol = col;     //the row and col of the empty space is changed
+        emptyRow = row; //the empty space have alreadly move to the tile position
+        emptyCol = col; //the row and col of the empty space is changed
 
         return true;
     }
 
     public boolean isSolved() {
-
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
-
                 Tile tile = tiles[row][col];
                 if (!tile.isInCorrectPosition()) {
                     return false;
@@ -111,25 +121,16 @@ public class Board {
     }
 
     public List<int[]> getMovablePositions() {
-
         List<int[]> result = new ArrayList<>();
 
-        int[][] directions = {
-                {-1, 0},
-                {1, 0},
-                {0, -1},
-                {0, 1}
-        };
+        int[][] directions = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
 
         for (int[] d : directions) {
-
             int newRow = emptyRow + d[0];
             int newCol = emptyCol + d[1];
 
-            if (newRow >= 0 && newRow < size &&
-                newCol >= 0 && newCol < size) {
-
-                    result.add(new int[]{newRow, newCol});
+            if (newRow >= 0 && newRow < size && newCol >= 0 && newCol < size) {
+                result.add(new int[] { newRow, newCol });
             }
         }
         return result;
@@ -152,7 +153,13 @@ public class Board {
             for (int col = 0; col < size; col++) {
                 int id = tileIds[row][col];
                 if (id == 0) {
-                    tiles[row][col] = new Tile(0, size - 1, size - 1, null, true);
+                    tiles[row][col] = new Tile(
+                        0,
+                        size - 1,
+                        size - 1,
+                        null,
+                        true
+                    );
                     tiles[row][col].setPosition(row, col);
                     emptyRow = row;
                     emptyCol = col;
@@ -161,11 +168,21 @@ public class Board {
                     int correctCol = (id - 1) % size;
 
                     BufferedImage piece = null;
-                    if (tilePieces != null && id - 1 >= 0 && id - 1 < tilePieces.length) {
+                    if (
+                        tilePieces != null &&
+                        id - 1 >= 0 &&
+                        id - 1 < tilePieces.length
+                    ) {
                         piece = tilePieces[id - 1];
                     }
 
-                    tiles[row][col] = new Tile(id, correctRow, correctCol, piece, false);
+                    tiles[row][col] = new Tile(
+                        id,
+                        correctRow,
+                        correctCol,
+                        piece,
+                        false
+                    );
                     tiles[row][col].setPosition(row, col);
                 }
             }
@@ -185,7 +202,9 @@ public class Board {
         for (int i = 0; i < shuffleSteps; i++) {
             List<int[]> movablePositions = getMovablePositions();
 
-            int[] chosen = movablePositions.get(random.nextInt(movablePositions.size()));
+            int[] chosen = movablePositions.get(
+                random.nextInt(movablePositions.size())
+            );
             int row = chosen[0];
             int col = chosen[1];
 
@@ -209,15 +228,18 @@ public class Board {
                     original.isEmpty()
                 );
 
-                newTile.setPosition(original.getCurrentRow(), original.getCurrentCol());
+                newTile.setPosition(
+                    original.getCurrentRow(),
+                    original.getCurrentCol()
+                );
                 copy[row][col] = newTile;
-
             }
         }
         return copy;
     }
 
-    public void reset() {       //reset the puzzle to original state
+    public void reset() {
+        //reset the puzzle to original state
         // If opening state hasn't been created yet, treat "reset" as "start game".
         if (initialTiles == null) {
             initializeSolvedBoard();
@@ -227,7 +249,8 @@ public class Board {
 
         tiles = new Tile[size][size];
 
-        for (int row = 0; row < size; row++) {      //copy initialTiles to tiles
+        for (int row = 0; row < size; row++) {
+            //copy initialTiles to tiles
             for (int col = 0; col < size; col++) {
                 Tile original = initialTiles[row][col];
 
@@ -239,16 +262,18 @@ public class Board {
                     original.isEmpty()
                 );
 
-                newTile.setPosition(original.getCurrentRow(), original.getCurrentCol());
+                newTile.setPosition(
+                    original.getCurrentRow(),
+                    original.getCurrentCol()
+                );
                 tiles[row][col] = newTile;
 
-                if (newTile.isEmpty()) {        //reset the empty tile position
+                if (newTile.isEmpty()) {
+                    //reset the empty tile position
                     emptyRow = row;
                     emptyCol = col;
                 }
             }
         }
     }
-
-
 }
